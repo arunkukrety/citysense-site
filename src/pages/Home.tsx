@@ -10,7 +10,7 @@ import 'leaflet/dist/leaflet.css';
 interface DataPoint {
   lat: number;
   lng: number;
-  weight: number;
+  aqi: number;
 }
 
 interface Location {
@@ -19,9 +19,12 @@ interface Location {
 }
 
 const INITIAL_DATA_POINTS: DataPoint[] = [
-  { lat: 28.6139, lng: 77.2090, weight: 1 },
-  { lat: 28.6239, lng: 77.2190, weight: 0.5 },
-  { lat: 28.6039, lng: 77.1990, weight: 0.8 },
+  { lat: 28.6139 + (Math.random() * 0.01 - 0.005), lng: 77.2090 + (Math.random() * 0.01 - 0.005), aqi: 350 },
+  { lat: 28.6339 + (Math.random() * 0.01 - 0.005), lng: 77.2290 + (Math.random() * 0.01 - 0.005), aqi: 150 },
+  { lat: 28.5939 + (Math.random() * 0.01 - 0.005), lng: 77.1890 + (Math.random() * 0.01 - 0.005), aqi: 75 },
+  { lat: 28.6539 + (Math.random() * 0.01 - 0.005), lng: 77.2490 + (Math.random() * 0.01 - 0.005), aqi: 280 },
+  { lat: 28.5739 + (Math.random() * 0.01 - 0.005), lng: 77.1690 + (Math.random() * 0.01 - 0.005), aqi: 120 },
+  { lat: 28.6739 + (Math.random() * 0.01 - 0.005), lng: 77.2690 + (Math.random() * 0.01 - 0.005), aqi: 50 },
 ];
 
 // Custom location control component
@@ -87,19 +90,19 @@ const Home: React.FC = () => {
     <div className="min-h-screen bg-[#1F2A44] text-white px-4 sm:px-6 py-4">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 
+        <h1
           className="text-2xl sm:text-3xl font-bold tracking-tight"
-          style={{ 
+          style={{
             textShadow: '0 1px 4px rgba(0,196,204,0.5)',
             fontFamily: 'Inter, sans-serif',
           }}
         >
-          CitySense
+          <span className="text-[#00ff95]">City</span>
+          <span className="text-white">Sense</span>
         </h1>
-        <span 
-          className={`text-sm font-medium ${
-            isLoading || isRefreshing ? 'text-yellow-400' : 'text-green-400'
-          }`}
+        <span
+          className={`text-sm font-medium ${isLoading || isRefreshing ? 'text-yellow-400' : 'text-green-400'
+            }`}
         >
           {isLoading || isRefreshing ? 'Fetching urban data...' : 'Live urban data loaded'}
         </span>
@@ -138,19 +141,37 @@ const Home: React.FC = () => {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
             {dataPoints.map((point, index) => (
-              <Circle
-                key={index}
-                center={[point.lat, point.lng]}
-                radius={500}
-                pathOptions={{
-                  fillColor: `rgba(0, 196, 204, ${point.weight * 0.7})`,
-                  fillOpacity: 0.7,
-                  color: 'transparent',
-                }}
-              />
+              <>
+                <Circle
+                  key={`circle-${index}`}
+                  center={[point.lat, point.lng]}
+                  radius={500}
+                  pathOptions={{
+                    fillColor: point.aqi > 300 ? 'rgba(255, 0, 0, 0.3)' :
+                      point.aqi > 100 ? 'rgba(255, 165, 0, 0.3)' :
+                        'rgba(0, 255, 0, 0.3)',
+                    fillOpacity: 0.6,
+                    color: point.aqi > 300 ? '#ff0000' :
+                      point.aqi > 100 ? '#ffa500' :
+                        '#00ff00',
+                    weight: 2,
+                    opacity: 0.8
+                  }}
+                />
+                <Marker
+                  key={`marker-${index}`}
+                  position={[point.lat, point.lng]}
+                  icon={L.divIcon({
+                    className: 'flex items-center justify-center',
+                    html: `<div class="px-3 py-1 rounded-full font-bold text-white shadow-lg ${point.aqi > 300 ? 'bg-red-500' : point.aqi > 100 ? 'bg-orange-500' : 'bg-green-500'}">${point.aqi}</div>`,
+                    iconSize: [60, 30],
+                    iconAnchor: [30, 15]
+                  })}
+                />
+              </>
             ))}
             {userLocation && (
-              <Marker 
+              <Marker
                 position={[userLocation.lat, userLocation.lng]}
                 icon={L.divIcon({
                   className: 'bg-blue-500 w-4 h-4 rounded-full border-2 border-white',
